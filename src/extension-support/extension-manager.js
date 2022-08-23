@@ -32,6 +32,7 @@ const builtinExtensions = {
     community: () => require('../extensions/scratch3_community'),
     community2: () => require('../extensions/scratch3_community2'),
     yx: () => require('../extensions/scratch3_yx'),
+    bigdec: () => require('../extensions/scratch-big-decimal'),
     //kinect: () => require('../extensions/scratch3_kinect'),
     set: () => require('../extensions/scratch3_set'),
     pen: () => require('../extensions/scratch3_pen'),
