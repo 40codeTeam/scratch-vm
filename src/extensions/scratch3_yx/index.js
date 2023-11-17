@@ -358,6 +358,81 @@ class Scratch3CommunityBlocks {
                         defaultValue: '==',
                         menu:'operator'
                     }
+                },
+            },
+            {
+                opcode: 'bitwiseLeftShift',
+                blockType: Scratch.BlockType.REPORTER,
+                text: '[LEFT] << [RIGHT]',
+                arguments: {
+                    LEFT: {
+                        type: Scratch.ArgumentType.NUMBER,
+                        defaultValue: '2'
+                    },
+                    RIGHT: {
+                        type: Scratch.ArgumentType.NUMBER,
+                        defaultValue: '1'
+                    }
+                }
+            },
+            {
+                opcode: 'bitwiseRightShift',
+                blockType: Scratch.BlockType.REPORTER,
+                text: '[LEFT] >> [RIGHT]',
+                arguments: {
+                    LEFT: {
+                        type: Scratch.ArgumentType.NUMBER,
+                        defaultValue: '2'
+                    },
+                    RIGHT: {
+                        type: Scratch.ArgumentType.NUMBER,
+                        defaultValue: '1'
+                    }
+                }
+            },
+            {
+                opcode: 'bitwiseAnd',
+                blockType: Scratch.BlockType.REPORTER,
+                text: '[LEFT] & [RIGHT]',
+                arguments: {
+                    LEFT: {
+                        type: Scratch.ArgumentType.NUMBER,
+                        defaultValue: '3'
+                    },
+                    RIGHT: {
+                        type: Scratch.ArgumentType.NUMBER,
+                        defaultValue: '1'
+                    }
+                }
+            },
+            {
+                opcode: 'bitwiseOr',
+                blockType: Scratch.BlockType.REPORTER,
+                text: '[LEFT] | [RIGHT]',
+                arguments: {
+                    LEFT: {
+                        type: Scratch.ArgumentType.NUMBER,
+                        defaultValue: '1'
+                    },
+                    RIGHT: {
+                        type: Scratch.ArgumentType.NUMBER,
+                        defaultValue: '0'
+                    }
+                }
+            },
+            {
+                opcode: 'bitwiseXor',
+                blockType: Scratch.BlockType.REPORTER,
+                text: '[LEFT] ^ [RIGHT]',
+                arguments: {
+                    LEFT: {
+                        type: Scratch.ArgumentType.NUMBER,
+                        defaultValue: '1'
+                    },
+                    RIGHT: {
+                        type: Scratch.ArgumentType.NUMBER,
+                        defaultValue: '1'
+                    }
                 }
             },
             {
@@ -885,6 +960,26 @@ class Scratch3CommunityBlocks {
             return this._error;
         }
     */
+
+    bitwiseLeftShift({ LEFT, RIGHT }) {
+        return LEFT << RIGHT;
+    }
+
+    bitwiseRightShift({ LEFT, RIGHT }) {
+        return LEFT >> RIGHT;
+    }
+
+    bitwiseAnd({ LEFT, RIGHT }) {
+        return LEFT & RIGHT;
+    }
+
+    bitwiseOr({ LEFT, RIGHT }) {
+        return LEFT | RIGHT;
+    }
+
+    bitwiseXor({ LEFT, RIGHT }) {
+        return LEFT ^ RIGHT;
+    }
 }
 
 module.exports = Scratch3CommunityBlocks;
