@@ -1,5 +1,9 @@
 const ArgumentType = require('../../extension-support/argument-type');
 const BlockType = require('../../extension-support/block-type');
+const Cast = require('../../util/cast');
+
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+const DEFAULT_AUDIO_ID = '';
 /**
  * Icon svg to be displayed at the left edge of each extension block, encoded as a data URI.
  * @type {string}
@@ -34,6 +38,9 @@ class Scratch3LazyAudioBlocks {
          * @type {Runtime}
          */
         this.runtime = runtime;
+        this._audioState = {
+            music: {}
+        };
         this._bufferedAudios = {};
     }
 
@@ -57,7 +64,7 @@ class Scratch3LazyAudioBlocks {
                 arguments: {
                     AUDIO_ID: {
                         type: ArgumentType.STRING,
-                        defaultValue: 'http://music.163.com/song/media/outer/url?id=504923885.mp3'
+                        defaultValue: DEFAULT_AUDIO_ID
                     }
                 }
             },
@@ -68,7 +75,7 @@ class Scratch3LazyAudioBlocks {
                 arguments: {
                     AUDIO_ID: {
                         type: ArgumentType.STRING,
-                        defaultValue: 'http://music.163.com/song/media/outer/url?id=504923885.mp3'
+                        defaultValue: DEFAULT_AUDIO_ID
                     }
                 }
             },
@@ -79,7 +86,7 @@ class Scratch3LazyAudioBlocks {
                 arguments: {
                     AUDIO_ID: {
                         type: ArgumentType.STRING,
-                        defaultValue: 'http://music.163.com/song/media/outer/url?id=504923885.mp3'
+                        defaultValue: DEFAULT_AUDIO_ID
                     }
                 }
             },
@@ -98,7 +105,7 @@ class Scratch3LazyAudioBlocks {
                 arguments: {
                     AUDIO_ID: {
                         type: ArgumentType.STRING,
-                        defaultValue: 'http://music.163.com/song/media/outer/url?id=504923885.mp3'
+                        defaultValue: DEFAULT_AUDIO_ID
                     }
                 }
             },
@@ -109,7 +116,7 @@ class Scratch3LazyAudioBlocks {
                 arguments: {
                     AUDIO_ID: {
                         type: ArgumentType.STRING,
-                        defaultValue: 'http://music.163.com/song/media/outer/url?id=504923885.mp3'
+                        defaultValue: DEFAULT_AUDIO_ID
                     }
                 }
             },
@@ -120,11 +127,11 @@ class Scratch3LazyAudioBlocks {
                 arguments: {
                     AUDIO_ID: {
                         type: ArgumentType.STRING,
-                        defaultValue: 'http://music.163.com/song/media/outer/url?id=504923885.mp3'
+                        defaultValue: DEFAULT_AUDIO_ID
                     },
                     s: {
-                        type: ArgumentType.STRING,
-                        defaultValue: '14'
+                        type: ArgumentType.NUMBER,
+                        defaultValue: 14
                     }
                 }
             },
@@ -135,7 +142,7 @@ class Scratch3LazyAudioBlocks {
                 arguments: {
                     AUDIO_ID: {
                         type: ArgumentType.STRING,
-                        defaultValue: 'http://music.163.com/song/media/outer/url?id=504923885.mp3'
+                        defaultValue: DEFAULT_AUDIO_ID
                     }
                 }
             },
@@ -146,11 +153,11 @@ class Scratch3LazyAudioBlocks {
                 arguments: {
                     AUDIO_ID: {
                         type: ArgumentType.STRING,
-                        defaultValue: 'http://music.163.com/song/media/outer/url?id=504923885.mp3'
+                        defaultValue: DEFAULT_AUDIO_ID
                     },
                     s: {
-                        type: ArgumentType.STRING,
-                        defaultValue: '2'
+                        type: ArgumentType.NUMBER,
+                        defaultValue: 2
                     }
                 }
             },
@@ -161,11 +168,11 @@ class Scratch3LazyAudioBlocks {
                 arguments: {
                     AUDIO_ID: {
                         type: ArgumentType.STRING,
-                        defaultValue: 'http://music.163.com/song/media/outer/url?id=504923885.mp3'
+                        defaultValue: DEFAULT_AUDIO_ID
                     },
                     s: {
                         type: ArgumentType.NUMBER,
-                        defaultValue: '0.14'
+                        defaultValue: 0.14
                     }
                 }
             },
@@ -176,11 +183,7 @@ class Scratch3LazyAudioBlocks {
                 arguments: {
                     AUDIO_ID: {
                         type: ArgumentType.STRING,
-                        defaultValue: 'http://music.163.com/song/media/outer/url?id=504923885.mp3'
-                    },
-                    s: {
-                        type: ArgumentType.STRING,
-                        defaultValue: '14'
+                        defaultValue: DEFAULT_AUDIO_ID
                     }
                 }
             },
@@ -191,7 +194,7 @@ class Scratch3LazyAudioBlocks {
                 arguments: {
                     AUDIO_ID: {
                         type: ArgumentType.STRING,
-                        defaultValue: 'http://music.163.com/song/media/outer/url?id=504923885.mp3'
+                        defaultValue: DEFAULT_AUDIO_ID
                     },
                     s: {
                         type: ArgumentType.NUMBER,
@@ -206,7 +209,7 @@ class Scratch3LazyAudioBlocks {
                 arguments: {
                     AUDIO_ID: {
                         type: ArgumentType.STRING,
-                        defaultValue: 'http://music.163.com/song/media/outer/url?id=504923885.mp3'
+                        defaultValue: DEFAULT_AUDIO_ID
                     },
                     s: {
                         type: ArgumentType.NUMBER,
@@ -218,136 +221,156 @@ class Scratch3LazyAudioBlocks {
             menus: {}
         };
     }
+    _getAudioState() {
+        if (!this._audioState.music || typeof this._audioState.music !== 'object') {
+            this._audioState.music = {};
+        }
+        return this._audioState;
+    }
+
     _ad() {
-        if (!temp2['music']) {
-            temp2['music'] = {};
+        return this._getAudios();
+    }
+
+    _getAudios() {
+        return this._getAudioState().music;
+    }
+
+    _getAudio(audioId) {
+        return this._getAudios()[Cast.toString(audioId)];
+    }
+
+    _createAudioElement(src) {
+        if (typeof document === 'undefined' || typeof document.createElement !== 'function') {
+            return null;
+        }
+
+        const media = document.createElement('video');
+        media.preload = 'auto';
+        media.src = src;
+        if (src.toLowerCase().indexOf('.mp4') !== -1) {
+            media.crossOrigin = 'anonymous';
+        }
+        return media;
+    }
+
+    _safeMediaCall(media, method) {
+        if (!media || typeof media[method] !== 'function') return;
+        try {
+            const result = media[method]();
+            if (result && typeof result.catch === 'function') {
+                result.catch(() => {});
+            }
+        } catch (e) {
+            // Browser media APIs can throw for autoplay, CORS, or unsupported sources.
         }
     }
-    load(args, util) {
-        try {
-            const mp3 = args.AUDIO_ID;
-            this._ad();
-            if (temp2['music'][mp3]) {
-                temp2['music'][mp3].currentTime = 0;
-                return;
-            }
-            let l = document.createElement('video');
 
-            l.src = mp3;
-            if(mp3.indexOf('.mp4')!==-1)l.crossOrigin = ''
-            temp2['music'][mp3] = l;
-            temp2['music'][mp3].load();
-        } catch (e) { }
+    _safeSetMediaProperty(media, property, value) {
+        if (!media) return;
+        try {
+            media[property] = value;
+        } catch (e) {
+            // Keep Scratch scripts running even when a browser rejects a media value.
+        }
+    }
+
+    _safeNumber(value) {
+        return typeof value === 'number' && !Number.isNaN(value) ? value : -1;
+    }
+
+    _getMediaNumber(media, property) {
+        if (!media) return -1;
+        return this._safeNumber(media[property]);
+    }
+
+    _getBufferedTime(media, index, method) {
+        const buffered = media && media.buffered;
+        const rangeIndex = Math.floor(Cast.toNumber(index)) - 1;
+        if (!buffered || rangeIndex < 0 || rangeIndex >= buffered.length ||
+                typeof buffered[method] !== 'function') {
+            return -1;
+        }
+        try {
+            return this._safeNumber(buffered[method](rangeIndex));
+        } catch (e) {
+            return -1;
+        }
+    }
+
+    load(args, util) {
+        const src = Cast.toString(args.AUDIO_ID);
+        if (!src) return;
+
+        const audios = this._getAudios();
+        if (audios[src]) {
+            this._safeSetMediaProperty(audios[src], 'currentTime', 0);
+            return;
+        }
+
+        const media = this._createAudioElement(src);
+        if (!media) return;
+
+        audios[src] = media;
+        this._safeMediaCall(media, 'load');
     }
 
     play(args, util) {
-        try {
-            const mp3 = args.AUDIO_ID;
-            this._ad();
-            if (temp2['music'][mp3])
-                temp2['music'][mp3].play();
-        } catch (e) { }
+        this._safeMediaCall(this._getAudio(args.AUDIO_ID), 'play');
     }
+
     pause(args, util) {
-        try {
-            const mp3 = args.AUDIO_ID;
-            this._ad();
-            if (temp2['music'][mp3])
-                temp2['music'][mp3].pause();
-        } catch (e) { }
+        this._safeMediaCall(this._getAudio(args.AUDIO_ID), 'pause');
     }
+
     pauseAll(args, util) {
-        try {
-            const mp3 = args.AUDIO_ID;
-            this._ad();
-            Object.keys(temp2['music']).forEach(mp3 => {
-                temp2['music'][mp3].pause();
-            })
-        } catch (e) { }
+        const audios = this._getAudios();
+        Object.keys(audios).forEach(audioId => {
+            this._safeMediaCall(audios[audioId], 'pause');
+        });
     }
+
     cd(args, util) {
-        try {
-            const mp3 = args.AUDIO_ID;
-            this._ad();
-            if (temp2['music'][mp3])
-                return temp2['music'][mp3].currentTime;
-            else
-                return '-1';
-        } catch (e) { }
+        return this._getMediaNumber(this._getAudio(args.AUDIO_ID), 'currentTime');
     }
+
     bf(args, util) {
-        try {
-            const mp3 = args.AUDIO_ID;
-            this._ad();
-            if (temp2['music'][mp3])
-                return temp2['music'][mp3].playbackRate;
-            else
-                return '-1';
-        } catch (e) { }
+        return this._getMediaNumber(this._getAudio(args.AUDIO_ID), 'playbackRate');
     }
+
     zcd(args, util) {
-        try {
-            const mp3 = args.AUDIO_ID;
-            this._ad();
-            if (temp2['music'][mp3])
-                return temp2['music'][mp3].duration;
-            else
-                return '-1';
-        } catch (e) { }
+        return this._getMediaNumber(this._getAudio(args.AUDIO_ID), 'duration');
     }
+
     hc(args, util) {
-        try {
-            const mp3 = args.AUDIO_ID;
-            this._ad();
-            if (temp2['music'][mp3])
-                return temp2['music'][mp3].buffered.length;
-            else
-                return '-1';
-        } catch (e) { }
+        const media = this._getAudio(args.AUDIO_ID);
+        return media && media.buffered ? media.buffered.length : -1;
     }
+
     hcs(args, util) {
-        try {
-            const mp3 = args.AUDIO_ID;
-            this._ad();
-            if (temp2['music'][mp3])
-                return temp2['music'][mp3].buffered.start(args.s - 1);
-            else
-                return '-1';
-        } catch (e) { }
+        return this._getBufferedTime(this._getAudio(args.AUDIO_ID), args.s, 'start');
     }
+
     hce(args, util) {
-        try {
-            const mp3 = args.AUDIO_ID;
-            this._ad();
-            if (temp2['music'][mp3])
-                return temp2['music'][mp3].buffered.end(args.s - 1);
-            else
-                return '-1';
-        } catch (e) { }
+        return this._getBufferedTime(this._getAudio(args.AUDIO_ID), args.s, 'end');
     }
+
     sz(args, util) {
-        try {
-            const mp3 = args.AUDIO_ID;
-            this._ad();
-            if (temp2['music'][mp3])
-                temp2['music'][mp3].currentTime = args.s;
-        } catch (e) { }
+        const seconds = Cast.toNumber(args.s);
+        if (!Number.isFinite(seconds)) return;
+        this._safeSetMediaProperty(this._getAudio(args.AUDIO_ID), 'currentTime', Math.max(0, seconds));
     }
+
     bf2(args, util) {
-        try {
-            const mp3 = args.AUDIO_ID;
-            this._ad();
-            if (temp2['music'][mp3])
-                temp2['music'][mp3].playbackRate = args.s;
-        } catch (e) { }
+        const rate = Cast.toNumber(args.s);
+        if (!Number.isFinite(rate)) return;
+        this._safeSetMediaProperty(this._getAudio(args.AUDIO_ID), 'playbackRate', rate);
     }
+
     yl(args, util) {
-        try {
-            const mp3 = args.AUDIO_ID;
-            this._ad();
-            if (temp2['music'][mp3])
-                temp2['music'][mp3].volume = args.s;
-        } catch (e) { }
+        const volume = Cast.toNumber(args.s);
+        if (!Number.isFinite(volume)) return;
+        this._safeSetMediaProperty(this._getAudio(args.AUDIO_ID), 'volume', clamp(volume, 0, 1));
     }
 }
 
